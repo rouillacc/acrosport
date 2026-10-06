@@ -584,3 +584,474 @@
 
     .teacher-box textarea {
       min-height: 48px;
+      resize: vertical;
+    }
+
+    .teacher-box textarea[readonly], .teacher-box input[type="text"][readonly] {
+      background: #fefce8;
+      cursor: not-allowed;
+      border-color: transparent;
+      color: #92400e;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 36px;
+      padding: 16px;
+      border-top: 1px dashed var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL CODE PIN -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <h2>AcroEPS</h2>
+      <p>Entrez le code secret de l'îlot (ou code enseignant)</p>
+      <input type="password" id="pinInput" maxlength="4" placeholder="••••" inputmode="numeric" class="pin-field">
+      <button type="button" class="btn-primary" id="btnSubmitPin">Ouvrir l'îlot</button>
+      <div class="auth-error" id="authError"></div>
+    </div>
+  </div>
+
+  <!-- APPLICATION PRINCIPALE -->
+  <div id="app" style="display: none;">
+    <header>
+      <div>
+        <span class="badge-group" id="currentGroupBadge">Groupe 1</span>
+      </div>
+      <button class="btn-secondary" onclick="lockApp()">Sortir / Verrouiller</button>
+    </header>
+
+    <!-- PANNEAU D'ADMINISTRATION PROFESSEUR -->
+    <section id="teacher-admin-panel">
+      <div class="admin-title">
+        <span>Administration Enseignant — Codes des 10 Groupes</span>
+        <button type="button" class="btn-secondary" style="background:#fff;" onclick="resetGroupCodes()">Réinitialiser les codes</button>
+      </div>
+
+      <div class="admin-grid" id="adminCodesGrid">
+        <!-- Généré dynamiquement en JS pour les 10 groupes -->
+      </div>
+
+      <div class="admin-nav-bar">
+        <label for="adminGroupSelector">Consulter l'îlot :</label>
+        <select id="adminGroupSelector" onchange="changeViewedGroup(this.value)">
+          <!-- Rempli en JS -->
+        </select>
+      </div>
+    </section>
+
+    <!-- BANNIÈRE D'IDENTIFICATION -->
+    <section class="group-id-hero">
+      <div class="selfie-section">
+        <div class="selfie-wrapper-large" onclick="document.getElementById('selfieInput').click()">
+          <span class="selfie-placeholder" id="selfiePlaceholder">Prendre la photo / selfie du groupe (6 élèves max)</span>
+          <img id="selfieImg" alt="Selfie du groupe">
+        </div>
+        <label for="selfieInput" class="btn-photo-action">Capturer / Changer la photo</label>
+        <input type="file" id="selfieInput" accept="image/*" capture="user" class="input-file-hidden" onchange="processImage(event, 'selfieImg', 'selfiePlaceholder')">
+      </div>
+
+      <div class="names-section">
+        <h3>Prénoms des élèves de l'îlot</h3>
+        <div class="students-grid">
+          <div class="student-entry"><span>1</span><input type="text" class="student-slot" placeholder="Élève 1" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>2</span><input type="text" class="student-slot" placeholder="Élève 2" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>3</span><input type="text" class="student-slot" placeholder="Élève 3" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>4</span><input type="text" class="student-slot" placeholder="Élève 4" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>5</span><input type="text" class="student-slot" placeholder="Élève 5" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>6</span><input type="text" class="student-slot" placeholder="Élève 6" oninput="updateStudentOptions()"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION VIDÉO PODÉDUC -->
+    <section class="video-hero">
+      <div class="video-hero-header">
+        <h2>Passage dynamique complet</h2>
+        <span class="tag-sovereign">PodÉduc</span>
+      </div>
+
+      <div class="video-player-container" id="videoBox">
+        <iframe id="podEducFrame" frameborder="0" allowfullscreen></iframe>
+      </div>
+
+      <div class="video-placeholder" id="videoEmptyNotice">
+        Aucune vidéo synchronisée.<br>
+        Envoyez le fichier via <strong>Quick Share</strong> à l'enseignant pour mise en ligne.
+      </div>
+
+      <div class="teacher-box">
+        <div class="teacher-box-header">
+          <span>Lien PodÉduc</span>
+          <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('videoUrlField')">Modifier le lien</button>
+        </div>
+        <input type="text" id="videoUrlField" readonly placeholder="Coller l'URL PodÉduc..." onchange="refreshVideoPlayer()">
+      </div>
+
+      <div class="teacher-box" style="margin-top: 8px;">
+        <div class="teacher-box-header">
+          <span>Bilan Enseignant — Enchaînement</span>
+          <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('videoFeedbackField')">Modifier le bilan</button>
+        </div>
+        <textarea id="videoFeedbackField" readonly placeholder="Continuité, liaisons, sécurité..."></textarea>
+      </div>
+    </section>
+
+    <!-- DUOS -->
+    <div class="category-header">
+      <h2>Les 4 Duos</h2>
+      <span class="category-pill">2 élèves</span>
+      <div class="category-line"></div>
+    </div>
+    <div class="figures-grid" id="duos-container"></div>
+
+    <!-- TRIOS -->
+    <div class="category-header">
+      <h2>Les 3 Trios</h2>
+      <span class="category-pill">3 élèves</span>
+      <div class="category-line"></div>
+    </div>
+    <div class="figures-grid" id="trios-container"></div>
+
+    <!-- QUATUORS -->
+    <div class="category-header">
+      <h2>Les 3 Quatuors</h2>
+      <span class="category-pill">4 élèves</span>
+      <div class="category-line"></div>
+    </div>
+    <div class="figures-grid" id="quatuors-container"></div>
+
+    <footer>
+      Dispositif pédagogique EPS — 10 Groupes — Données protégées. Durée de conservation : 60 jours.
+    </footer>
+  </div>
+
+  <script>
+    const TEACHER_PIN = '1988';
+
+    // Codes par défaut pour les 10 groupes
+    const DEFAULT_CODES = {
+      1: '1001',
+      2: '1002',
+      3: '1003',
+      4: '1004',
+      5: '1005',
+      6: '1006',
+      7: '1007',
+      8: '1008',
+      9: '1009',
+      10: '1010'
+    };
+
+    let groupCodes = {};
+    let activeGroupId = 1;
+    let isTeacherUnlocked = false;
+
+    // Charger les codes personnalisés ou par défaut
+    function loadGroupCodes() {
+      const saved = localStorage.getItem('acroeps_group_codes');
+      if (saved) {
+        try {
+          groupCodes = JSON.parse(saved);
+        } catch(e) {
+          groupCodes = { ...DEFAULT_CODES };
+        }
+      } else {
+        groupCodes = { ...DEFAULT_CODES };
+      }
+    }
+
+    function saveGroupCodes() {
+      localStorage.setItem('acroeps_group_codes', JSON.stringify(groupCodes));
+    }
+
+    function resetGroupCodes() {
+      if (confirm("Réinitialiser tous les codes des 10 groupes aux valeurs par défaut ?")) {
+        groupCodes = { ...DEFAULT_CODES };
+        saveGroupCodes();
+        renderAdminGrid();
+        alert("Codes réinitialisés (1001 à 1010).");
+      }
+    }
+
+    loadGroupCodes();
+
+    // Rendu du panneau admin prof
+    function renderAdminGrid() {
+      const grid = document.getElementById('adminCodesGrid');
+      const selector = document.getElementById('adminGroupSelector');
+      grid.innerHTML = '';
+      selector.innerHTML = '';
+
+      for (let i = 1; i <= 10; i++) {
+        const card = document.createElement('div');
+        card.className = 'admin-group-card';
+        card.innerHTML = `
+          <span>Groupe ${i}</span>
+          <input type="text" maxlength="4" value="${groupCodes[i] || ''}" onchange="updateGroupCode(${i}, this.value)" inputmode="numeric">
+        `;
+        grid.appendChild(card);
+
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Afficher Groupe ${i}`;
+        if (i === activeGroupId) opt.selected = true;
+        selector.appendChild(opt);
+      }
+    }
+
+    function updateGroupCode(groupId, newCode) {
+      const cleanCode = newCode.trim();
+      if (!cleanCode || cleanCode.length < 3) {
+        alert("Veuillez saisir un code valide (3 ou 4 chiffres).");
+        renderAdminGrid();
+        return;
+      }
+      groupCodes[groupId] = cleanCode;
+      saveGroupCodes();
+    }
+
+    function changeViewedGroup(groupId) {
+      activeGroupId = parseInt(groupId, 10);
+      document.getElementById('currentGroupBadge').innerText = `Groupe ${activeGroupId}`;
+      // Ici, les données de chaque groupe pourraient être rechargées dynamiquement
+    }
+
+    function verifyPin() {
+      const pinField = document.getElementById('pinInput');
+      const pin = pinField ? pinField.value.trim() : '';
+      const errorLabel = document.getElementById('authError');
+
+      // Vérification Enseignant
+      if (pin === TEACHER_PIN) {
+        isTeacherUnlocked = true;
+        activeGroupId = 1;
+        document.getElementById('currentGroupBadge').innerText = `Mode Enseignant — Groupe ${activeGroupId}`;
+        document.getElementById('currentGroupBadge').classList.add('badge-prof');
+        document.getElementById('teacher-admin-panel').style.display = 'block';
+        renderAdminGrid();
+        openApp();
+        return;
+      }
+
+      // Vérification Groupes (1 à 10)
+      let foundGroup = null;
+      for (let i = 1; i <= 10; i++) {
+        if (groupCodes[i] === pin) {
+          foundGroup = i;
+          break;
+        }
+      }
+
+      if (foundGroup) {
+        isTeacherUnlocked = false;
+        activeGroupId = foundGroup;
+        document.getElementById('currentGroupBadge').innerText = `Groupe ${activeGroupId}`;
+        document.getElementById('currentGroupBadge').classList.remove('badge-prof');
+        document.getElementById('teacher-admin-panel').style.display = 'none';
+        openApp();
+      } else {
+        if (errorLabel) errorLabel.innerText = 'Code invalide. Vérifiez auprès de l’enseignant.';
+      }
+    }
+
+    function openApp() {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('pinInput').value = '';
+      document.getElementById('authError').innerText = '';
+      syncTeacherState();
+    }
+
+    function lockApp() {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+      isTeacherUnlocked = false;
+      syncTeacherState();
+    }
+
+    function unlockTeacherAction(targetId) {
+      if (isTeacherUnlocked) {
+        document.getElementById(targetId).focus();
+        return;
+      }
+      const code = prompt("Code enseignant requis :");
+      if (code === TEACHER_PIN) {
+        isTeacherUnlocked = true;
+        syncTeacherState();
+        document.getElementById(targetId).focus();
+      } else if (code !== null) {
+        alert("Code enseignant erroné.");
+      }
+    }
+
+    function syncTeacherState() {
+      document.querySelectorAll('.teacher-box textarea, .teacher-box input[type="text"]').forEach(input => {
+        if (isTeacherUnlocked) {
+          input.removeAttribute('readonly');
+        } else {
+          input.setAttribute('readonly', 'true');
+        }
+      });
+    }
+
+    function refreshVideoPlayer() {
+      const url = document.getElementById('videoUrlField').value.trim();
+      const box = document.getElementById('videoBox');
+      const notice = document.getElementById('videoEmptyNotice');
+      const frame = document.getElementById('podEducFrame');
+
+      if (url) {
+        frame.src = url.includes('?is_iframe=true') ? url : `${url}?is_iframe=true`;
+        box.style.display = 'block';
+        notice.style.display = 'none';
+      } else {
+        frame.src = '';
+        box.style.display = 'none';
+        notice.style.display = 'block';
+      }
+    }
+
+    function processImage(event, imgId, labelId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1200;
+          let width = tempImg.width;
+          let height = tempImg.height;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(tempImg, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          const displayImg = document.getElementById(imgId);
+          displayImg.src = compressedDataUrl;
+          displayImg.style.display = 'block';
+          if (labelId) {
+            document.getElementById(labelId).style.display = 'none';
+          }
+        };
+        tempImg.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function getStudentNames() {
+      const inputs = document.querySelectorAll('.student-slot');
+      const names = [];
+      inputs.forEach((input, index) => {
+        const val = input.value.trim();
+        names.push(val || `Élève ${index + 1}`);
+      });
+      return names;
+    }
+
+    function updateStudentOptions() {
+      const names = getStudentNames();
+      const selects = document.querySelectorAll('.select-student');
+
+      selects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">-- Choisir un élève --</option>';
+        names.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+        select.value = currentValue;
+      });
+    }
+
+    document.getElementById('btnSubmitPin').addEventListener('click', verifyPin);
+    document.getElementById('pinInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        verifyPin();
+      }
+    });
+
+    /* Structure Duo (2), Trio (3), Quatuor (4) */
+    const templateStructure = [
+      { container: 'duos-container', prefix: 'Duo', total: 4, studentCount: 2 },
+      { container: 'trios-container', prefix: 'Trio', total: 3, studentCount: 3 },
+      { container: 'quatuors-container', prefix: 'Quatuor', total: 3, studentCount: 4 }
+    ];
+
+    templateStructure.forEach(sec => {
+      const targetBox = document.getElementById(sec.container);
+      if (!targetBox) return;
+
+      for (let i = 1; i <= sec.total; i++) {
+        const id = `${sec.prefix.toLowerCase()}-${i}`;
+        const card = document.createElement('div');
+        card.className = 'figure-card';
+
+        let rolesHTML = '';
+        for (let s = 1; s <= sec.studentCount; s++) {
+          rolesHTML += `
+            <div class="role-row">
+              <span>${s}</span>
+              <select class="select-student" id="stu-${id}-${s}">
+                <option value="">-- Choisir un élève --</option>
+              </select>
+              <select class="select-role" id="role-${id}-${s}">
+                <option value="Porteur">Porteur</option>
+                <option value="Voltigeur">Voltigeur</option>
+              </select>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div style="font-weight: 700; font-size: 0.98rem;">${sec.prefix} n°${i}</div>
+
+          <div class="photo-stage" id="stage-${id}">
+            <span class="photo-text" id="label-${id}">Photo absente</span>
+            <img id="img-${id}" alt="Photo ${sec.prefix} ${i}">
+          </div>
+
+          <label class="btn-photo-action">
+            Prendre la photo
+            <input type="file" accept="image/*" capture="environment" class="input-file-hidden" onchange="processImage(event, 'img-${id}', 'label-${id}')">
+          </label>
+
+          <div class="roles-container">
+            ${rolesHTML}
+          </div>
+
+          <div class="teacher-box">
+            <div class="teacher-box-header">
+              <span>Bilan Enseignant</span>
+              <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('feedback-${id}')">Modifier</button>
+            </div>
+            <textarea id="feedback-${id}" readonly placeholder="Alignement, surfaces d'appui, tenue 3s..."></textarea>
+          </div>
+        `;
+        targetBox.appendChild(card);
+      }
+    });
+
+    updateStudentOptions();
+  </script>
+</body>
+</html>
