@@ -38,7 +38,6 @@
       line-height: 1.4;
     }
 
-    /* Modal Verrouillage PIN */
     #auth-screen {
       position: fixed;
       inset: 0;
@@ -109,7 +108,6 @@
       min-height: 20px;
     }
 
-    /* En-tête */
     header {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -147,7 +145,6 @@
       cursor: pointer;
     }
 
-    /* Panneau de Gestion Professeur */
     #teacher-admin-panel {
       background: #fffdf5;
       border: 2px solid #facc15;
@@ -208,11 +205,6 @@
       background: #f8fafc;
     }
 
-    .admin-group-card input:focus {
-      border-color: #0284c7;
-      background: #fff;
-    }
-
     .admin-nav-bar {
       display: flex;
       align-items: center;
@@ -235,7 +227,6 @@
       font-weight: 600;
     }
 
-    /* Identification : Grand selfie + 6 élèves */
     .group-id-hero {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -355,7 +346,6 @@
       display: none;
     }
 
-    /* Section Vidéo PodÉduc */
     .video-hero {
       background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
       border: 1px solid #ccfbf1;
@@ -412,7 +402,6 @@
       margin-bottom: 12px;
     }
 
-    /* Catégories */
     .category-header {
       display: flex;
       align-items: center;
@@ -440,7 +429,6 @@
       background: var(--border);
     }
 
-    /* Grille figures */
     .figures-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -537,7 +525,6 @@
       outline: none;
     }
 
-    /* Cadres enseignant */
     .teacher-box {
       background: var(--teacher-bg);
       border: 1px solid var(--teacher-border);
@@ -623,48 +610,44 @@
       <div>
         <span class="badge-group" id="currentGroupBadge">Groupe 1</span>
       </div>
-      <button class="btn-secondary" onclick="lockApp()">Sortir / Verrouiller</button>
+      <button class="btn-secondary" id="btnLockApp">Sortir / Verrouiller</button>
     </header>
 
     <!-- PANNEAU D'ADMINISTRATION PROFESSEUR -->
     <section id="teacher-admin-panel">
       <div class="admin-title">
         <span>Administration Enseignant — Codes des 10 Groupes</span>
-        <button type="button" class="btn-secondary" style="background:#fff;" onclick="resetGroupCodes()">Réinitialiser les codes</button>
+        <button type="button" class="btn-secondary" style="background:#fff;" id="btnResetCodes">Réinitialiser les codes</button>
       </div>
 
-      <div class="admin-grid" id="adminCodesGrid">
-        <!-- Généré dynamiquement en JS pour les 10 groupes -->
-      </div>
+      <div class="admin-grid" id="adminCodesGrid"></div>
 
       <div class="admin-nav-bar">
         <label for="adminGroupSelector">Consulter l'îlot :</label>
-        <select id="adminGroupSelector" onchange="changeViewedGroup(this.value)">
-          <!-- Rempli en JS -->
-        </select>
+        <select id="adminGroupSelector"></select>
       </div>
     </section>
 
     <!-- BANNIÈRE D'IDENTIFICATION -->
     <section class="group-id-hero">
       <div class="selfie-section">
-        <div class="selfie-wrapper-large" onclick="document.getElementById('selfieInput').click()">
+        <div class="selfie-wrapper-large" id="selfieBox">
           <span class="selfie-placeholder" id="selfiePlaceholder">Prendre la photo / selfie du groupe (6 élèves max)</span>
           <img id="selfieImg" alt="Selfie du groupe">
         </div>
         <label for="selfieInput" class="btn-photo-action">Capturer / Changer la photo</label>
-        <input type="file" id="selfieInput" accept="image/*" capture="user" class="input-file-hidden" onchange="processImage(event, 'selfieImg', 'selfiePlaceholder')">
+        <input type="file" id="selfieInput" accept="image/*" capture="user" class="input-file-hidden">
       </div>
 
       <div class="names-section">
         <h3>Prénoms des élèves de l'îlot</h3>
         <div class="students-grid">
-          <div class="student-entry"><span>1</span><input type="text" class="student-slot" placeholder="Élève 1" oninput="updateStudentOptions()"></div>
-          <div class="student-entry"><span>2</span><input type="text" class="student-slot" placeholder="Élève 2" oninput="updateStudentOptions()"></div>
-          <div class="student-entry"><span>3</span><input type="text" class="student-slot" placeholder="Élève 3" oninput="updateStudentOptions()"></div>
-          <div class="student-entry"><span>4</span><input type="text" class="student-slot" placeholder="Élève 4" oninput="updateStudentOptions()"></div>
-          <div class="student-entry"><span>5</span><input type="text" class="student-slot" placeholder="Élève 5" oninput="updateStudentOptions()"></div>
-          <div class="student-entry"><span>6</span><input type="text" class="student-slot" placeholder="Élève 6" oninput="updateStudentOptions()"></div>
+          <div class="student-entry"><span>1</span><input type="text" class="student-slot" id="slot-0" placeholder="Élève 1"></div>
+          <div class="student-entry"><span>2</span><input type="text" class="student-slot" id="slot-1" placeholder="Élève 2"></div>
+          <div class="student-entry"><span>3</span><input type="text" class="student-slot" id="slot-2" placeholder="Élève 3"></div>
+          <div class="student-entry"><span>4</span><input type="text" class="student-slot" id="slot-3" placeholder="Élève 4"></div>
+          <div class="student-entry"><span>5</span><input type="text" class="student-slot" id="slot-4" placeholder="Élève 5"></div>
+          <div class="student-entry"><span>6</span><input type="text" class="student-slot" id="slot-5" placeholder="Élève 6"></div>
         </div>
       </div>
     </section>
@@ -688,15 +671,15 @@
       <div class="teacher-box">
         <div class="teacher-box-header">
           <span>Lien PodÉduc</span>
-          <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('videoUrlField')">Modifier le lien</button>
+          <button type="button" class="btn-lock-action" id="btnUnlockVideoUrl">Modifier le lien</button>
         </div>
-        <input type="text" id="videoUrlField" readonly placeholder="Coller l'URL PodÉduc..." onchange="refreshVideoPlayer()">
+        <input type="text" id="videoUrlField" readonly placeholder="Coller l'URL PodÉduc...">
       </div>
 
       <div class="teacher-box" style="margin-top: 8px;">
         <div class="teacher-box-header">
           <span>Bilan Enseignant — Enchaînement</span>
-          <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('videoFeedbackField')">Modifier le bilan</button>
+          <button type="button" class="btn-lock-action" id="btnUnlockVideoFeedback">Modifier le bilan</button>
         </div>
         <textarea id="videoFeedbackField" readonly placeholder="Continuité, liaisons, sécurité..."></textarea>
       </div>
@@ -727,61 +710,52 @@
     <div class="figures-grid" id="quatuors-container"></div>
 
     <footer>
-      Dispositif pédagogique EPS — 10 Groupes — Données protégées. Durée de conservation : 60 jours.
+      Dispositif pédagogique EPS — 10 Groupes — Données synchronisées Firebase. Durée de conservation : 60 jours.
     </footer>
   </div>
 
-  <script>
-    const TEACHER_PIN = '1988';
+  <!-- MODULE FIREBASE V10+ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // Codes par défaut pour les 10 groupes
-    const DEFAULT_CODES = {
-      1: '1001',
-      2: '1002',
-      3: '1003',
-      4: '1004',
-      5: '1005',
-      6: '1006',
-      7: '1007',
-      8: '1008',
-      9: '1009',
-      10: '1010'
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4MfIqwigWZm7gVwlvagDWn1B3eg2a4ZU",
+      authDomain: "acrosport-b765f.firebaseapp.com",
+      projectId: "acrosport-b765f",
+      storageBucket: "acrosport-b765f.firebasestorage.app",
+      messagingSenderId: "665449975328",
+      appId: "1:665449975328:web:5f91161d429db881a7f645"
     };
 
-    let groupCodes = {};
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const TEACHER_PIN = '1988';
+    const DEFAULT_CODES = {
+      1: '1001', 2: '1002', 3: '1003', 4: '1004', 5: '1005',
+      6: '1006', 7: '1007', 8: '1008', 9: '1009', 10: '1010'
+    };
+
+    let groupCodes = { ...DEFAULT_CODES };
     let activeGroupId = 1;
     let isTeacherUnlocked = false;
+    let unsubscribeGroup = null;
 
-    // Charger les codes personnalisés ou par défaut
-    function loadGroupCodes() {
-      const saved = localStorage.getItem('acroeps_group_codes');
-      if (saved) {
-        try {
-          groupCodes = JSON.parse(saved);
-        } catch(e) {
-          groupCodes = { ...DEFAULT_CODES };
+    // --- Synchronisation des codes PIN ---
+    async function initCodesListener() {
+      const codesDocRef = doc(db, "config", "codes");
+      onSnapshot(codesDocRef, (snap) => {
+        if (snap.exists()) {
+          groupCodes = { ...DEFAULT_CODES, ...snap.data() };
+        } else {
+          setDoc(codesDocRef, DEFAULT_CODES);
         }
-      } else {
-        groupCodes = { ...DEFAULT_CODES };
-      }
+        if (isTeacherUnlocked) renderAdminGrid();
+      });
     }
+    initCodesListener();
 
-    function saveGroupCodes() {
-      localStorage.setItem('acroeps_group_codes', JSON.stringify(groupCodes));
-    }
-
-    function resetGroupCodes() {
-      if (confirm("Réinitialiser tous les codes des 10 groupes aux valeurs par défaut ?")) {
-        groupCodes = { ...DEFAULT_CODES };
-        saveGroupCodes();
-        renderAdminGrid();
-        alert("Codes réinitialisés (1001 à 1010).");
-      }
-    }
-
-    loadGroupCodes();
-
-    // Rendu du panneau admin prof
     function renderAdminGrid() {
       const grid = document.getElementById('adminCodesGrid');
       const selector = document.getElementById('adminGroupSelector');
@@ -793,9 +767,17 @@
         card.className = 'admin-group-card';
         card.innerHTML = `
           <span>Groupe ${i}</span>
-          <input type="text" maxlength="4" value="${groupCodes[i] || ''}" onchange="updateGroupCode(${i}, this.value)" inputmode="numeric">
+          <input type="text" maxlength="4" value="${groupCodes[i] || ''}" id="code-input-${i}" inputmode="numeric">
         `;
         grid.appendChild(card);
+
+        card.querySelector('input').addEventListener('change', async (e) => {
+          const val = e.target.value.trim();
+          if (val.length >= 3) {
+            groupCodes[i] = val;
+            await setDoc(doc(db, "config", "codes"), groupCodes, { merge: true });
+          }
+        });
 
         const opt = document.createElement('option');
         opt.value = i;
@@ -805,29 +787,316 @@
       }
     }
 
-    function updateGroupCode(groupId, newCode) {
-      const cleanCode = newCode.trim();
-      if (!cleanCode || cleanCode.length < 3) {
-        alert("Veuillez saisir un code valide (3 ou 4 chiffres).");
+    document.getElementById('adminGroupSelector').addEventListener('change', (e) => {
+      activeGroupId = parseInt(e.target.value, 10);
+      document.getElementById('currentGroupBadge').innerText = `Mode Enseignant — Groupe ${activeGroupId}`;
+      bindGroupRealtime(activeGroupId);
+    });
+
+    document.getElementById('btnResetCodes').addEventListener('click', async () => {
+      if (confirm("Réinitialiser tous les codes aux valeurs par défaut (1001 à 1010) ?")) {
+        groupCodes = { ...DEFAULT_CODES };
+        await setDoc(doc(db, "config", "codes"), DEFAULT_CODES);
         renderAdminGrid();
-        return;
       }
-      groupCodes[groupId] = cleanCode;
-      saveGroupCodes();
+    });
+
+    // --- Génération des figures ---
+    const templateStructure = [
+      { container: 'duos-container', prefix: 'Duo', total: 4, studentCount: 2 },
+      { container: 'trios-container', prefix: 'Trio', total: 3, studentCount: 3 },
+      { container: 'quatuors-container', prefix: 'Quatuor', total: 3, studentCount: 4 }
+    ];
+
+    templateStructure.forEach(sec => {
+      const targetBox = document.getElementById(sec.container);
+      if (!targetBox) return;
+
+      for (let i = 1; i <= sec.total; i++) {
+        const id = `${sec.prefix.toLowerCase()}-${i}`;
+        const card = document.createElement('div');
+        card.className = 'figure-card';
+
+        let rolesHTML = '';
+        for (let s = 1; s <= sec.studentCount; s++) {
+          rolesHTML += `
+            <div class="role-row">
+              <span>${s}</span>
+              <select class="select-student" id="stu-${id}-${s}" data-id="${id}" data-idx="${s}">
+                <option value="">-- Choisir un élève --</option>
+              </select>
+              <select class="select-role" id="role-${id}-${s}" data-id="${id}" data-idx="${s}">
+                <option value="Porteur">Porteur</option>
+                <option value="Voltigeur">Voltigeur</option>
+              </select>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div style="font-weight: 700; font-size: 0.98rem;">${sec.prefix} n°${i}</div>
+
+          <div class="photo-stage" id="stage-${id}">
+            <span class="photo-text" id="label-${id}">Photo absente</span>
+            <img id="img-${id}" alt="Photo ${sec.prefix} ${i}">
+          </div>
+
+          <label class="btn-photo-action">
+            Prendre la photo
+            <input type="file" accept="image/*" capture="environment" class="input-file-hidden" id="file-${id}">
+          </label>
+
+          <div class="roles-container">
+            ${rolesHTML}
+          </div>
+
+          <div class="teacher-box">
+            <div class="teacher-box-header">
+              <span>Bilan Enseignant</span>
+              <button type="button" class="btn-lock-action" data-target="feedback-${id}">Modifier</button>
+            </div>
+            <textarea id="feedback-${id}" readonly placeholder="Alignement, surfaces d'appui, tenue 3s..."></textarea>
+          </div>
+        `;
+        targetBox.appendChild(card);
+
+        // Upload photo figure
+        card.querySelector(`#file-${id}`).addEventListener('change', (e) => {
+          processImage(e, `img-${id}`, `label-${id}`, `figures.${id}.photo`);
+        });
+
+        // Bouton modif bilan
+        card.querySelector(`button[data-target="feedback-${id}"]`).addEventListener('click', () => {
+          unlockTeacherAction(`feedback-${id}`);
+        });
+
+        // Sauvegarde immédiate bilan
+        card.querySelector(`#feedback-${id}`).addEventListener('change', (e) => {
+          saveGroupField(`figures.${id}.feedback`, e.target.value);
+        });
+
+        // Sauvegarde rôles
+        for (let s = 1; s <= sec.studentCount; s++) {
+          card.querySelector(`#stu-${id}-${s}`).addEventListener('change', (e) => {
+            saveGroupField(`figures.${id}.roles.s${s}.name`, e.target.value);
+          });
+          card.querySelector(`#role-${id}-${s}`).addEventListener('change', (e) => {
+            saveGroupField(`figures.${id}.roles.s${s}.role`, e.target.value);
+          });
+        }
+      }
+    });
+
+    // --- Prénoms et Sélecteurs ---
+    function getStudentNames() {
+      const inputs = document.querySelectorAll('.student-slot');
+      const names = [];
+      inputs.forEach((input, index) => {
+        const val = input.value.trim();
+        names.push(val || `Élève ${index + 1}`);
+      });
+      return names;
     }
 
-    function changeViewedGroup(groupId) {
-      activeGroupId = parseInt(groupId, 10);
-      document.getElementById('currentGroupBadge').innerText = `Groupe ${activeGroupId}`;
-      // Ici, les données de chaque groupe pourraient être rechargées dynamiquement
+    function updateStudentOptions() {
+      const names = getStudentNames();
+      const selects = document.querySelectorAll('.select-student');
+
+      selects.forEach(select => {
+        const current = select.value;
+        select.innerHTML = '<option value="">-- Choisir un élève --</option>';
+        names.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+        select.value = current;
+      });
     }
 
+    document.querySelectorAll('.student-slot').forEach((input, idx) => {
+      input.addEventListener('input', () => {
+        updateStudentOptions();
+      });
+      input.addEventListener('change', (e) => {
+        saveGroupField(`students.slot_${idx}`, e.target.value);
+      });
+    });
+
+    // --- Compression d'Image ---
+    function processImage(event, imgId, labelId, firestorePath) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1000;
+          let width = tempImg.width;
+          let height = tempImg.height;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(tempImg, 0, 0, width, height);
+
+          const compressed = canvas.toDataURL('image/jpeg', 0.65);
+          const displayImg = document.getElementById(imgId);
+          displayImg.src = compressed;
+          displayImg.style.display = 'block';
+          if (labelId) document.getElementById(labelId).style.display = 'none';
+
+          if (firestorePath) {
+            saveGroupField(firestorePath, compressed);
+          }
+        };
+        tempImg.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Selfie
+    document.getElementById('selfieBox').addEventListener('click', () => {
+      document.getElementById('selfieInput').click();
+    });
+    document.getElementById('selfieInput').addEventListener('change', (e) => {
+      processImage(e, 'selfieImg', 'selfiePlaceholder', 'selfie');
+    });
+
+    // --- Vidéo PodÉduc ---
+    function refreshVideoPlayer() {
+      const url = document.getElementById('videoUrlField').value.trim();
+      const box = document.getElementById('videoBox');
+      const notice = document.getElementById('videoEmptyNotice');
+      const frame = document.getElementById('podEducFrame');
+
+      if (url) {
+        frame.src = url.includes('?is_iframe=true') ? url : `${url}?is_iframe=true`;
+        box.style.display = 'block';
+        notice.style.display = 'none';
+      } else {
+        frame.src = '';
+        box.style.display = 'none';
+        notice.style.display = 'block';
+      }
+    }
+
+    document.getElementById('videoUrlField').addEventListener('change', (e) => {
+      refreshVideoPlayer();
+      saveGroupField('video.url', e.target.value.trim());
+    });
+
+    document.getElementById('videoFeedbackField').addEventListener('change', (e) => {
+      saveGroupField('video.feedback', e.target.value);
+    });
+
+    // --- Persistance Firestore pour le groupe actif ---
+    async function saveGroupField(path, value) {
+      const groupRef = doc(db, "groupes", `groupe_${activeGroupId}`);
+      const payload = {};
+      payload[path] = value;
+      await setDoc(groupRef, payload, { merge: true });
+    }
+
+    function bindGroupRealtime(groupId) {
+      if (unsubscribeGroup) unsubscribeGroup();
+
+      const groupRef = doc(db, "groupes", `groupe_${groupId}`);
+      unsubscribeGroup = onSnapshot(groupRef, (snap) => {
+        if (!snap.exists()) {
+          resetUiFields();
+          return;
+        }
+        const data = snap.data();
+
+        // 1. Selfie
+        const selfieImg = document.getElementById('selfieImg');
+        const selfiePlaceholder = document.getElementById('selfiePlaceholder');
+        if (data.selfie) {
+          selfieImg.src = data.selfie;
+          selfieImg.style.display = 'block';
+          selfiePlaceholder.style.display = 'none';
+        } else {
+          selfieImg.style.display = 'none';
+          selfiePlaceholder.style.display = 'block';
+        }
+
+        // 2. Prénoms
+        for (let i = 0; i < 6; i++) {
+          const val = (data.students && data.students[`slot_${i}`]) || '';
+          document.getElementById(`slot-${i}`).value = val;
+        }
+        updateStudentOptions();
+
+        // 3. Vidéo PodÉduc
+        const vUrl = (data.video && data.video.url) || '';
+        const vFeedback = (data.video && data.video.feedback) || '';
+        document.getElementById('videoUrlField').value = vUrl;
+        document.getElementById('videoFeedbackField').value = vFeedback;
+        refreshVideoPlayer();
+
+        // 4. Figures
+        if (data.figures) {
+          Object.keys(data.figures).forEach(figId => {
+            const fig = data.figures[figId];
+            if (fig.photo) {
+              const img = document.getElementById(`img-${figId}`);
+              const label = document.getElementById(`label-${figId}`);
+              if (img) {
+                img.src = fig.photo;
+                img.style.display = 'block';
+                if (label) label.style.display = 'none';
+              }
+            }
+            if (fig.feedback) {
+              const fb = document.getElementById(`feedback-${figId}`);
+              if (fb) fb.value = fig.feedback;
+            }
+            if (fig.roles) {
+              Object.keys(fig.roles).forEach(sKey => {
+                const sIdx = sKey.replace('s', '');
+                const stuSelect = document.getElementById(`stu-${figId}-${sIdx}`);
+                const roleSelect = document.getElementById(`role-${figId}-${sIdx}`);
+                if (stuSelect) stuSelect.value = fig.roles[sKey].name || '';
+                if (roleSelect) roleSelect.value = fig.roles[sKey].role || 'Porteur';
+              });
+            }
+          });
+        }
+      });
+    }
+
+    function resetUiFields() {
+      document.getElementById('selfieImg').style.display = 'none';
+      document.getElementById('selfiePlaceholder').style.display = 'block';
+      for (let i = 0; i < 6; i++) document.getElementById(`slot-${i}`).value = '';
+      updateStudentOptions();
+      document.getElementById('videoUrlField').value = '';
+      document.getElementById('videoFeedbackField').value = '';
+      refreshVideoPlayer();
+
+      document.querySelectorAll('.photo-stage img').forEach(img => img.style.display = 'none');
+      document.querySelectorAll('.photo-stage .photo-text').forEach(p => p.style.display = 'block');
+      document.querySelectorAll('.teacher-box textarea').forEach(txt => txt.value = '');
+      document.querySelectorAll('.select-student').forEach(sel => sel.value = '');
+    }
+
+    // --- Sécurité et Authentification ---
     function verifyPin() {
-      const pinField = document.getElementById('pinInput');
-      const pin = pinField ? pinField.value.trim() : '';
+      const pin = document.getElementById('pinInput').value.trim();
       const errorLabel = document.getElementById('authError');
 
-      // Vérification Enseignant
       if (pin === TEACHER_PIN) {
         isTeacherUnlocked = true;
         activeGroupId = 1;
@@ -839,7 +1108,6 @@
         return;
       }
 
-      // Vérification Groupes (1 à 10)
       let foundGroup = null;
       for (let i = 1; i <= 10; i++) {
         if (groupCodes[i] === pin) {
@@ -856,7 +1124,7 @@
         document.getElementById('teacher-admin-panel').style.display = 'none';
         openApp();
       } else {
-        if (errorLabel) errorLabel.innerText = 'Code invalide. Vérifiez auprès de l’enseignant.';
+        errorLabel.innerText = 'Code invalide. Vérifiez auprès de l’enseignant.';
       }
     }
 
@@ -866,17 +1134,20 @@
       document.getElementById('pinInput').value = '';
       document.getElementById('authError').innerText = '';
       syncTeacherState();
+      bindGroupRealtime(activeGroupId);
     }
 
     function lockApp() {
       document.getElementById('app').style.display = 'none';
       document.getElementById('auth-screen').style.display = 'flex';
       isTeacherUnlocked = false;
+      if (unsubscribeGroup) unsubscribeGroup();
       syncTeacherState();
     }
 
     function unlockTeacherAction(targetId) {
       if (isTeacherUnlocked) {
+        document.getElementById(targetId).removeAttribute('readonly');
         document.getElementById(targetId).focus();
         return;
       }
@@ -900,155 +1171,17 @@
       });
     }
 
-    function refreshVideoPlayer() {
-      const url = document.getElementById('videoUrlField').value.trim();
-      const box = document.getElementById('videoBox');
-      const notice = document.getElementById('videoEmptyNotice');
-      const frame = document.getElementById('podEducFrame');
-
-      if (url) {
-        frame.src = url.includes('?is_iframe=true') ? url : `${url}?is_iframe=true`;
-        box.style.display = 'block';
-        notice.style.display = 'none';
-      } else {
-        frame.src = '';
-        box.style.display = 'none';
-        notice.style.display = 'block';
-      }
-    }
-
-    function processImage(event, imgId, labelId) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const tempImg = new Image();
-        tempImg.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 1200;
-          let width = tempImg.width;
-          let height = tempImg.height;
-
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(tempImg, 0, 0, width, height);
-
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
-          const displayImg = document.getElementById(imgId);
-          displayImg.src = compressedDataUrl;
-          displayImg.style.display = 'block';
-          if (labelId) {
-            document.getElementById(labelId).style.display = 'none';
-          }
-        };
-        tempImg.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function getStudentNames() {
-      const inputs = document.querySelectorAll('.student-slot');
-      const names = [];
-      inputs.forEach((input, index) => {
-        const val = input.value.trim();
-        names.push(val || `Élève ${index + 1}`);
-      });
-      return names;
-    }
-
-    function updateStudentOptions() {
-      const names = getStudentNames();
-      const selects = document.querySelectorAll('.select-student');
-
-      selects.forEach(select => {
-        const currentValue = select.value;
-        select.innerHTML = '<option value="">-- Choisir un élève --</option>';
-        names.forEach(name => {
-          const opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          select.appendChild(opt);
-        });
-        select.value = currentValue;
-      });
-    }
-
     document.getElementById('btnSubmitPin').addEventListener('click', verifyPin);
-    document.getElementById('pinInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        verifyPin();
-      }
+    document.getElementById('pinInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') verifyPin();
     });
+    document.getElementById('btnLockApp').addEventListener('click', lockApp);
 
-    /* Structure Duo (2), Trio (3), Quatuor (4) */
-    const templateStructure = [
-      { container: 'duos-container', prefix: 'Duo', total: 4, studentCount: 2 },
-      { container: 'trios-container', prefix: 'Trio', total: 3, studentCount: 3 },
-      { container: 'quatuors-container', prefix: 'Quatuor', total: 3, studentCount: 4 }
-    ];
-
-    templateStructure.forEach(sec => {
-      const targetBox = document.getElementById(sec.container);
-      if (!targetBox) return;
-
-      for (let i = 1; i <= sec.total; i++) {
-        const id = `${sec.prefix.toLowerCase()}-${i}`;
-        const card = document.createElement('div');
-        card.className = 'figure-card';
-
-        let rolesHTML = '';
-        for (let s = 1; s <= sec.studentCount; s++) {
-          rolesHTML += `
-            <div class="role-row">
-              <span>${s}</span>
-              <select class="select-student" id="stu-${id}-${s}">
-                <option value="">-- Choisir un élève --</option>
-              </select>
-              <select class="select-role" id="role-${id}-${s}">
-                <option value="Porteur">Porteur</option>
-                <option value="Voltigeur">Voltigeur</option>
-              </select>
-            </div>
-          `;
-        }
-
-        card.innerHTML = `
-          <div style="font-weight: 700; font-size: 0.98rem;">${sec.prefix} n°${i}</div>
-
-          <div class="photo-stage" id="stage-${id}">
-            <span class="photo-text" id="label-${id}">Photo absente</span>
-            <img id="img-${id}" alt="Photo ${sec.prefix} ${i}">
-          </div>
-
-          <label class="btn-photo-action">
-            Prendre la photo
-            <input type="file" accept="image/*" capture="environment" class="input-file-hidden" onchange="processImage(event, 'img-${id}', 'label-${id}')">
-          </label>
-
-          <div class="roles-container">
-            ${rolesHTML}
-          </div>
-
-          <div class="teacher-box">
-            <div class="teacher-box-header">
-              <span>Bilan Enseignant</span>
-              <button type="button" class="btn-lock-action" onclick="unlockTeacherAction('feedback-${id}')">Modifier</button>
-            </div>
-            <textarea id="feedback-${id}" readonly placeholder="Alignement, surfaces d'appui, tenue 3s..."></textarea>
-          </div>
-        `;
-        targetBox.appendChild(card);
-      }
+    document.getElementById('btnUnlockVideoUrl').addEventListener('click', () => {
+      unlockTeacherAction('videoUrlField');
+    });
+    document.getElementById('btnUnlockVideoFeedback').addEventListener('click', () => {
+      unlockTeacherAction('videoFeedbackField');
     });
 
     updateStudentOptions();
