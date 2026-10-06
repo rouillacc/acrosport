@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AcroEPS — Carnet Numérique d'Îlot</title>
+
+  <!-- SDKs Firebase Compatibles (Fonctionnent en local et sur GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --primary: #0284c7;
@@ -26,7 +31,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
@@ -38,10 +43,11 @@
       line-height: 1.4;
     }
 
+    /* Modal Verrouillage PIN (visible par défaut) */
     #auth-screen {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
@@ -57,7 +63,7 @@
       max-width: 380px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
     .auth-card h2 {
@@ -108,6 +114,7 @@
       min-height: 20px;
     }
 
+    /* En-tête */
     header {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -145,6 +152,7 @@
       cursor: pointer;
     }
 
+    /* Panneau d'administration enseignant */
     #teacher-admin-panel {
       background: #fffdf5;
       border: 2px solid #facc15;
@@ -227,6 +235,7 @@
       font-weight: 600;
     }
 
+    /* Identification : Grand selfie + 6 élèves */
     .group-id-hero {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -346,6 +355,7 @@
       display: none;
     }
 
+    /* Section Vidéo PodÉduc */
     .video-hero {
       background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
       border: 1px solid #ccfbf1;
@@ -402,6 +412,7 @@
       margin-bottom: 12px;
     }
 
+    /* Catégories */
     .category-header {
       display: flex;
       align-items: center;
@@ -429,6 +440,7 @@
       background: var(--border);
     }
 
+    /* Grille figures */
     .figures-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -525,6 +537,7 @@
       outline: none;
     }
 
+    /* Cadres enseignant */
     .teacher-box {
       background: var(--teacher-bg);
       border: 1px solid var(--teacher-border);
@@ -593,7 +606,7 @@
 </head>
 <body>
 
-  <!-- MODAL CODE PIN -->
+  <!-- MODAL CODE PIN (affiché d'emblée) -->
   <div id="auth-screen">
     <div class="auth-card">
       <h2>AcroEPS</h2>
@@ -613,7 +626,7 @@
       <button class="btn-secondary" id="btnLockApp">Sortir / Verrouiller</button>
     </header>
 
-    <!-- PANNEAU D'ADMINISTRATION PROFESSEUR -->
+    <!-- PANNEAU PROFESSEUR -->
     <section id="teacher-admin-panel">
       <div class="admin-title">
         <span>Administration Enseignant — Codes des 10 Groupes</span>
@@ -628,7 +641,7 @@
       </div>
     </section>
 
-    <!-- BANNIÈRE D'IDENTIFICATION -->
+    <!-- IDENTIFICATION GROUPE -->
     <section class="group-id-hero">
       <div class="selfie-section">
         <div class="selfie-wrapper-large" id="selfieBox">
@@ -714,11 +727,8 @@
     </footer>
   </div>
 
-  <!-- MODULE FIREBASE V10+ -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+  <script>
+    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC4MfIqwigWZm7gVwlvagDWn1B3eg2a4ZU",
       authDomain: "acrosport-b765f.firebaseapp.com",
@@ -728,8 +738,15 @@
       appId: "1:665449975328:web:5f91161d429db881a7f645"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    let db = null;
+    try {
+      if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+      }
+    } catch(e) {
+      console.warn("Mode dégradé sans Firebase en direct :", e);
+    }
 
     const TEACHER_PIN = '1988';
     const DEFAULT_CODES = {
@@ -742,19 +759,26 @@
     let isTeacherUnlocked = false;
     let unsubscribeGroup = null;
 
-    // --- Synchronisation des codes PIN ---
-    async function initCodesListener() {
-      const codesDocRef = doc(db, "config", "codes");
-      onSnapshot(codesDocRef, (snap) => {
-        if (snap.exists()) {
-          groupCodes = { ...DEFAULT_CODES, ...snap.data() };
-        } else {
-          setDoc(codesDocRef, DEFAULT_CODES);
-        }
-        if (isTeacherUnlocked) renderAdminGrid();
-      });
+    // Récupérer les codes depuis Firebase ou le localStorage de secours
+    function loadCodes() {
+      const local = localStorage.getItem('acroeps_codes');
+      if (local) {
+        try { groupCodes = JSON.parse(local); } catch(e) {}
+      }
+
+      if (db) {
+        db.collection("config").doc("codes").onSnapshot((docSnap) => {
+          if (docSnap.exists) {
+            groupCodes = { ...DEFAULT_CODES, ...docSnap.data() };
+            localStorage.setItem('acroeps_codes', JSON.stringify(groupCodes));
+          } else {
+            db.collection("config").doc("codes").set(DEFAULT_CODES);
+          }
+          if (isTeacherUnlocked) renderAdminGrid();
+        }, (err) => console.log("Firestore en attente :", err));
+      }
     }
-    initCodesListener();
+    loadCodes();
 
     function renderAdminGrid() {
       const grid = document.getElementById('adminCodesGrid');
@@ -771,11 +795,16 @@
         `;
         grid.appendChild(card);
 
-        card.querySelector('input').addEventListener('change', async (e) => {
+        card.querySelector('input').addEventListener('change', (e) => {
           const val = e.target.value.trim();
           if (val.length >= 3) {
             groupCodes[i] = val;
-            await setDoc(doc(db, "config", "codes"), groupCodes, { merge: true });
+            localStorage.setItem('acroeps_codes', JSON.stringify(groupCodes));
+            if (db) {
+              const payload = {};
+              payload[i] = val;
+              db.collection("config").doc("codes").set(payload, { merge: true });
+            }
           }
         });
 
@@ -793,15 +822,16 @@
       bindGroupRealtime(activeGroupId);
     });
 
-    document.getElementById('btnResetCodes').addEventListener('click', async () => {
+    document.getElementById('btnResetCodes').addEventListener('click', () => {
       if (confirm("Réinitialiser tous les codes aux valeurs par défaut (1001 à 1010) ?")) {
         groupCodes = { ...DEFAULT_CODES };
-        await setDoc(doc(db, "config", "codes"), DEFAULT_CODES);
+        localStorage.setItem('acroeps_codes', JSON.stringify(groupCodes));
+        if (db) db.collection("config").doc("codes").set(DEFAULT_CODES);
         renderAdminGrid();
       }
     });
 
-    // --- Génération des figures ---
+    // Génération des figures
     const templateStructure = [
       { container: 'duos-container', prefix: 'Duo', total: 4, studentCount: 2 },
       { container: 'trios-container', prefix: 'Trio', total: 3, studentCount: 3 },
@@ -822,10 +852,10 @@
           rolesHTML += `
             <div class="role-row">
               <span>${s}</span>
-              <select class="select-student" id="stu-${id}-${s}" data-id="${id}" data-idx="${s}">
+              <select class="select-student" id="stu-${id}-${s}">
                 <option value="">-- Choisir un élève --</option>
               </select>
-              <select class="select-role" id="role-${id}-${s}" data-id="${id}" data-idx="${s}">
+              <select class="select-role" id="role-${id}-${s}">
                 <option value="Porteur">Porteur</option>
                 <option value="Voltigeur">Voltigeur</option>
               </select>
@@ -860,17 +890,17 @@
         `;
         targetBox.appendChild(card);
 
-        // Upload photo figure
+        // Événements photo
         card.querySelector(`#file-${id}`).addEventListener('change', (e) => {
           processImage(e, `img-${id}`, `label-${id}`, `figures.${id}.photo`);
         });
 
-        // Bouton modif bilan
+        // Déverrouillage retour enseignant
         card.querySelector(`button[data-target="feedback-${id}"]`).addEventListener('click', () => {
           unlockTeacherAction(`feedback-${id}`);
         });
 
-        // Sauvegarde immédiate bilan
+        // Sauvegarde retour enseignant
         card.querySelector(`#feedback-${id}`).addEventListener('change', (e) => {
           saveGroupField(`figures.${id}.feedback`, e.target.value);
         });
@@ -887,7 +917,7 @@
       }
     });
 
-    // --- Prénoms et Sélecteurs ---
+    // Prénoms & options
     function getStudentNames() {
       const inputs = document.querySelectorAll('.student-slot');
       const names = [];
@@ -916,15 +946,13 @@
     }
 
     document.querySelectorAll('.student-slot').forEach((input, idx) => {
-      input.addEventListener('input', () => {
-        updateStudentOptions();
-      });
+      input.addEventListener('input', updateStudentOptions);
       input.addEventListener('change', (e) => {
         saveGroupField(`students.slot_${idx}`, e.target.value);
       });
     });
 
-    // --- Compression d'Image ---
+    // Compression d'image via Canvas
     function processImage(event, imgId, labelId, firestorePath) {
       const file = event.target.files[0];
       if (!file) return;
@@ -934,7 +962,7 @@
         const tempImg = new Image();
         tempImg.onload = function() {
           const canvas = document.createElement('canvas');
-          const maxDim = 1000;
+          const maxDim = 900;
           let width = tempImg.width;
           let height = tempImg.height;
 
@@ -951,22 +979,19 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(tempImg, 0, 0, width, height);
 
-          const compressed = canvas.toDataURL('image/jpeg', 0.65);
+          const compressed = canvas.toDataURL('image/jpeg', 0.60);
           const displayImg = document.getElementById(imgId);
           displayImg.src = compressed;
           displayImg.style.display = 'block';
           if (labelId) document.getElementById(labelId).style.display = 'none';
 
-          if (firestorePath) {
-            saveGroupField(firestorePath, compressed);
-          }
+          if (firestorePath) saveGroupField(firestorePath, compressed);
         };
         tempImg.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    // Selfie
     document.getElementById('selfieBox').addEventListener('click', () => {
       document.getElementById('selfieInput').click();
     });
@@ -974,7 +999,7 @@
       processImage(e, 'selfieImg', 'selfiePlaceholder', 'selfie');
     });
 
-    // --- Vidéo PodÉduc ---
+    // Vidéo PodÉduc
     function refreshVideoPlayer() {
       const url = document.getElementById('videoUrlField').value.trim();
       const box = document.getElementById('videoBox');
@@ -996,57 +1021,56 @@
       refreshVideoPlayer();
       saveGroupField('video.url', e.target.value.trim());
     });
-
     document.getElementById('videoFeedbackField').addEventListener('change', (e) => {
       saveGroupField('video.feedback', e.target.value);
     });
 
-    // --- Persistance Firestore pour le groupe actif ---
-    async function saveGroupField(path, value) {
-      const groupRef = doc(db, "groupes", `groupe_${activeGroupId}`);
+    // Sauvegarde Firestore
+    function saveGroupField(path, value) {
+      if (!db) return;
       const payload = {};
       payload[path] = value;
-      await setDoc(groupRef, payload, { merge: true });
+      db.collection("groupes").doc(`groupe_${activeGroupId}`).set(payload, { merge: true });
     }
 
     function bindGroupRealtime(groupId) {
       if (unsubscribeGroup) unsubscribeGroup();
+      if (!db) return;
 
-      const groupRef = doc(db, "groupes", `groupe_${groupId}`);
-      unsubscribeGroup = onSnapshot(groupRef, (snap) => {
-        if (!snap.exists()) {
+      unsubscribeGroup = db.collection("groupes").doc(`groupe_${groupId}`).onSnapshot((docSnap) => {
+        if (!docSnap.exists) {
           resetUiFields();
           return;
         }
-        const data = snap.data();
+        const data = docSnap.data();
 
-        // 1. Selfie
-        const selfieImg = document.getElementById('selfieImg');
-        const selfiePlaceholder = document.getElementById('selfiePlaceholder');
+        // Selfie
+        const sImg = document.getElementById('selfieImg');
+        const sPlace = document.getElementById('selfiePlaceholder');
         if (data.selfie) {
-          selfieImg.src = data.selfie;
-          selfieImg.style.display = 'block';
-          selfiePlaceholder.style.display = 'none';
+          sImg.src = data.selfie;
+          sImg.style.display = 'block';
+          sPlace.style.display = 'none';
         } else {
-          selfieImg.style.display = 'none';
-          selfiePlaceholder.style.display = 'block';
+          sImg.style.display = 'none';
+          sPlace.style.display = 'block';
         }
 
-        // 2. Prénoms
+        // Prénoms
         for (let i = 0; i < 6; i++) {
           const val = (data.students && data.students[`slot_${i}`]) || '';
           document.getElementById(`slot-${i}`).value = val;
         }
         updateStudentOptions();
 
-        // 3. Vidéo PodÉduc
+        // Vidéo
         const vUrl = (data.video && data.video.url) || '';
-        const vFeedback = (data.video && data.video.feedback) || '';
+        const vFb = (data.video && data.video.feedback) || '';
         document.getElementById('videoUrlField').value = vUrl;
-        document.getElementById('videoFeedbackField').value = vFeedback;
+        document.getElementById('videoFeedbackField').value = vFb;
         refreshVideoPlayer();
 
-        // 4. Figures
+        // Figures
         if (data.figures) {
           Object.keys(data.figures).forEach(figId => {
             const fig = data.figures[figId];
@@ -1092,9 +1116,10 @@
       document.querySelectorAll('.select-student').forEach(sel => sel.value = '');
     }
 
-    // --- Sécurité et Authentification ---
+    // Gestion de l'authentification PIN
     function verifyPin() {
-      const pin = document.getElementById('pinInput').value.trim();
+      const pinField = document.getElementById('pinInput');
+      const pin = pinField ? pinField.value.trim() : '';
       const errorLabel = document.getElementById('authError');
 
       if (pin === TEACHER_PIN) {
